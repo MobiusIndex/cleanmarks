@@ -331,8 +331,9 @@ returns), while `api.github.com` on the same proxy is fast. Updates therefore go
 Data API:
 
 ```sh
+git checkout -b feat/whatever      # 每次改动开分支
 git add -A && git commit -m "…"
-python tools/push-via-api.py
+python tools/push-via-api.py --ff-main --tag v0.7.2   # 推分支 + 快进 main + 打 tag
 ```
 
 **Versioning** — this project is `0.7.N`: every push bumps the last digit (`0.7.1` → `0.7.2` …)

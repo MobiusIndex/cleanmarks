@@ -365,8 +365,9 @@ docker compose up -d --no-build
 把本地提交原样写上去（blob 内容寻址，推完两边 SHA 完全一致）：
 
 ```sh
+git checkout -b feat/whatever      # 每次改动先开分支
 git add -A && git commit -m "…"
-python tools/push-via-api.py
+python tools/push-via-api.py --ff-main --tag v0.7.2   # 推分支 + 快进 main + 打 tag
 ```
 
 代理换端口就用 `HTTPS_PROXY=http://127.0.0.1:7891 python tools/push-via-api.py`。
