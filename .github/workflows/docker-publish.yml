@@ -11,8 +11,6 @@ name: Publish image
 on:
   push:
     tags: ['v*']
-  create:
-    ref_type: tag
   workflow_dispatch:
 
 permissions:
