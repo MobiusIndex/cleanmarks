@@ -451,7 +451,22 @@ function initI18n() {
   }
 }
 
-window.WM_I18N = { setLang, get lang() { return LANG; }, t: translate, isEn: () => LANG === 'en' };
+function applyNow() {
+  const wasApplying = applying;
+  applying = true;
+  try {
+    applyLangTo(document.body || document.documentElement);
+  } finally {
+    applying = wasApplying;
+  }
+}
+
+window.WM_I18N = {
+  setLang, applyNow,
+  get lang() { return LANG; },
+  t: translate,
+  isEn: () => LANG === 'en',
+};
 
 if (document.body) initI18n();
 else document.addEventListener('DOMContentLoaded', initI18n, { once: true });

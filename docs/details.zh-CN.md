@@ -8,6 +8,7 @@
 
 - [AI 接口（Layer B 文本改写）](#ai-接口layer-b-文本改写)
 - [配置](#配置)
+- [选项](#选项)
 - [架构](#架构)
 - [目录与文件](#目录与文件)
 - [开发与自测](#开发与自测)
@@ -120,6 +121,26 @@ Docker 跑在 WSL 里时：
 | `WATERMARKS_CLEAN_STRATEGY_FILE` | 默认策略文件（默认 `config/clean_strategy.json`） |
 | `WATERMARKS_GUMBEL_KEY` | 启用 Gumbel 文本水印检测（免模型） |
 | `MARKLLM_DIR` / `MARKDIFFUSION_DIR` / `NOAI_WATERMARK_DIR` / `REVERSE_SYNTHID_DIR` | 外部模型后端的检出目录 |
+
+
+---
+
+## 选项
+
+| 选项 | 作用 | 默认 |
+| --- | --- | --- |
+| 元数据：全部 / 仅 AI 标记 | 全部剥离，或保留相机参数 | 全部剥离 |
+| 音频破坏性重编码 | 变速 1.08× + 升调 2 半音，输出 M4A | 关 |
+| 异体空格 → 普通空格 | NBSP、窄空格转普通空格 | 开 |
+| NFKC 归一化 | 全角转半角（会改正文） | 关 |
+| 同形字归正 | 西里尔/希腊字母转 ASCII | 关 |
+| 剥离承载型不可见字符 | 连写符、变体选择符 | 关 |
+| 剥离双向控制符 | RLO/LRO/PDF 等 | 关 |
+| 内嵌图片深度清理 | PDF/Office 里的图片重蒸馏 | 自动 |
+| 文档内文本也清理 | 关闭则只剥元数据 | 开 |
+
+Markdown / HTML / SVG 这类「文本型容器」先走引擎的容器管线（剥 frontmatter 里的 AI 字段、
+内嵌 data URI），再按上面的开关补一遍 Layer A 归一化——报告会分段列出。
 
 ---
 
@@ -344,10 +365,12 @@ docker compose up -d --no-build
 把本地提交原样写上去（blob 内容寻址，推完两边 SHA 完全一致）：
 
 ```sh
-git checkout -b feat/whatever      # 每次改动先开分支
 git add -A && git commit -m "…"
-python tools/push-via-api.py --ff-main --tag v2.0.1   # 推分支，并把 main 快进过去
+python tools/push-via-api.py
 ```
 
 代理换端口就用 `HTTPS_PROXY=http://127.0.0.1:7891 python tools/push-via-api.py`。
 `git push` 本身在代理恢复后也能用，只是目前这条路更稳。
+
+**版本号** — 本项目用 `0.7.N`：每次推送把最后一位加一（`0.7.1` → `0.7.2` …），并打对应
+的 `v0.7.N` tag + Release。版本号以 `server.py` 里的 `WEB_VERSION` 为准。

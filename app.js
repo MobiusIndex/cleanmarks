@@ -1372,6 +1372,8 @@ document.addEventListener('wm:lang', () => {
     updateLLMStatus();
     updateStatus();
     renderList();
+    // 上面几个都是 JS 重新拼字符串，重绘完立刻同步翻一遍，避免闪一帧中文
+    WMI.applyNow?.();
   } catch { /* 还没初始化完就忽略 */ }
 });
 

@@ -8,6 +8,7 @@ Installation and day-to-day usage are in the [README](../README.md); this file i
 
 - [AI interface (Layer B text rewriting)](#ai-interface-layer-b-text-rewriting)
 - [Configuration](#configuration)
+- [Options](#options)
 - [Architecture](#architecture)
 - [Repository layout](#repository-layout)
 - [Development and tests](#development-and-tests)
@@ -95,6 +96,27 @@ OpenAI-compatible or native Ollama.
 | `WATERMARKS_CLEAN_STRATEGY_FILE` | default strategy file (`config/clean_strategy.json`) |
 | `WATERMARKS_GUMBEL_KEY` | enable Gumbel text-watermark detection (model-free) |
 | `MARKLLM_DIR` / `MARKDIFFUSION_DIR` / `NOAI_WATERMARK_DIR` / `REVERSE_SYNTHID_DIR` | external model backends |
+
+
+---
+
+## Options
+
+| Option | Effect | Default |
+| --- | --- | --- |
+| Metadata: all / AI-only | strip everything, or keep camera data | strip all |
+| Destructive audio re-encode | 1.08× tempo + 2 semitones, output M4A | off |
+| Space homoglyphs → ASCII space | NBSP, thin space → plain space | on |
+| NFKC normalisation | full-width → half-width (alters the text) | off |
+| Homoglyph folding | Cyrillic / Greek → ASCII | off |
+| Strip carrier invisible chars | joiners, variation selectors | off |
+| Strip bidi controls | RLO/LRO/PDF … | off |
+| Deep-clean embedded images | re-distil images inside PDF/Office | auto |
+| Clean text inside documents | off = metadata only, body untouched | on |
+
+"Text-like containers" (Markdown / HTML / SVG) go through the engine's container pipeline first
+(strip AI keys from frontmatter, embedded data URIs), then the Layer A switches above are applied
+again on the text — the report lists both stages separately.
 
 ---
 
@@ -309,7 +331,9 @@ returns), while `api.github.com` on the same proxy is fast. Updates therefore go
 Data API:
 
 ```sh
-git checkout -b feat/whatever      # 每次改动开分支
 git add -A && git commit -m "…"
-python tools/push-via-api.py --ff-main --tag v2.0.1   # 推分支，并把 main 快进过去
+python tools/push-via-api.py
 ```
+
+**Versioning** — this project is `0.7.N`: every push bumps the last digit (`0.7.1` → `0.7.2` …)
+and gets a matching `v0.7.N` tag + release. `server.py`'s `WEB_VERSION` is the source of truth.
