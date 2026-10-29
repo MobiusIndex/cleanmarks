@@ -45,7 +45,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-WEB_VERSION = "0.7.8"
+WEB_VERSION = "0.7.9"
 UPSTREAM = os.environ.get("WATERMARKS_UPSTREAM", "http://127.0.0.1:8765").rstrip("/")
 SCRIPTS_DIR = Path(os.environ.get("WATERMARKS_SCRIPTS", "/app/scripts"))
 if str(SCRIPTS_DIR) not in sys.path:
