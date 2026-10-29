@@ -19,11 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
----
-
-This project is a front-end and orchestration layer for
-https://github.com/guillaumemeyer/watermarks-remover, which is separately
-licensed under the MIT License. The cleaning engine itself is not included in
-this repository; it is pulled as the container image
-ghcr.io/guillaumemeyer/watermarks-remover.
