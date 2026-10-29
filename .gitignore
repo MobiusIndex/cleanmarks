@@ -25,3 +25,7 @@ Thumbs.db
 
 # 本地配置（端口/限额等），不要提交
 .env
+
+# i18n 抽取用的临时清单
+.ref/strings.json
+.ref/frags.json
