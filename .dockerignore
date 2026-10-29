@@ -1,0 +1,14 @@
+# 构建上下文只需要镜像里那 5 个文件，其余一律不传
+.git
+.gitignore
+.gitattributes
+.ref
+tools
+docker/entrypoint.sh.bak
+*.md
+ui-*.png
+LICENSE
+.env
+.env.example
+__pycache__
+*.pyc
