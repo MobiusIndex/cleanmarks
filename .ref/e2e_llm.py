@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """验证 Layer B（AI 接口）链路：探活 + 文本清理。"""
+import os
 import base64, json, urllib.request, urllib.error
 from pathlib import Path
 
-BASE = "http://127.0.0.1:8770"
+BASE = os.environ.get("WM_BASE", "http://127.0.0.1:8770")
 LLM_BASE = "http://host.docker.internal:8791/v1"   # 故意用解析不了的域名，测回退
 MODEL = "mock-model"
 

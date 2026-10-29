@@ -11,7 +11,7 @@
 # 说明：只固定 wr-core 的镜像 digest 会让它绑死在一个版本上，用 tag 更便于
 # 后续更新；web 镜像基于它构建，所以两者要一起更新。
 
-name: watermark-cleaner
+name: watermarks-remover-webui
 
 services:
   # 官方核心服务：文本 Layer A、图片/文档/音视频元数据与 C2PA 剥离。
@@ -40,12 +40,16 @@ services:
     depends_on:
       - wr-core
     ports:
-      # 只绑回环地址，外网访问不到。要局域网共享改成 "8770:8770"，
-      # 但服务无鉴权，务必确认所在网络可信。
-      - "127.0.0.1:8770:8770"
+      # 默认只绑回环地址，外网访问不到。要局域网共享就把 .env 里的
+      # WM_BIND 改成 0.0.0.0 —— 服务无鉴权，务必确认所在网络可信。
+      - "${WM_BIND:-127.0.0.1}:${WM_PORT:-8770}:8770"
     environment:
       WATERMARKS_UPSTREAM: http://wr-core:8765
       WATERMARKS_SCRIPTS: /app/scripts
+      WATERMARKS_MAX_INPUT_BYTES: ${WATERMARKS_MAX_INPUT_BYTES:-268435456}
+      WATERMARKS_MAX_BATCH_FILES: ${WATERMARKS_MAX_BATCH_FILES:-50}
+      WATERMARKS_WEB_CONCURRENCY: ${WATERMARKS_WEB_CONCURRENCY:-2}
+      WATERMARKS_WEB_TIMEOUT: ${WATERMARKS_WEB_TIMEOUT:-1800}
     read_only: true
     tmpfs:
       - /tmp

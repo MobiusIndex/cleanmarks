@@ -62,6 +62,23 @@ Linux / macOS 也可以用附带脚本：
 | 网络 | 首次构建需要能访问 `ghcr.io`；离线安装见文末 |
 | 内存 | 容器 `/tmp` 是 tmpfs（占内存），处理大文件时峰值几百 MB |
 
+### 两种运行模式
+
+| 模式 | 命令 | 适合 |
+| --- | --- | --- |
+| 两容器（默认） | `docker compose up -d --build` | 长期运行：引擎单独一个容器，界面出问题不影响它 |
+| 单容器 | `docker compose -f compose.allinone.yaml up -d --build` | 只想一条命令跑起来：引擎和界面在同一个容器里 |
+
+不想用 compose 也可以：
+
+```sh
+docker build -t watermarks-remover-webui .
+docker run -d --name wr-web -p 127.0.0.1:8770:8770   -e WATERMARKS_EMBEDDED=1 -e WATERMARKS_UPSTREAM=http://127.0.0.1:8765   --read-only --tmpfs /tmp --init watermarks-remover-webui
+```
+
+端口、监听地址、单文件上限、并发数都写在 `.env` 里（`cp .env.example .env` 再改），
+`start.sh` 与 compose 读同一份配置。`./start.sh allinone` 就是单容器模式。
+
 ---
 
 ## 界面
@@ -284,13 +301,17 @@ wr-core           官方清洗引擎
 | 文件 | 作用 |
 | --- | --- |
 | `compose.yaml` | 编排定义：两个服务、tmpfs、健康检查、只读 rootfs |
+| `compose.allinone.yaml` | 单容器模式的编排（引擎与界面同容器） |
+| `docker/entrypoint.sh` | 容器入口：需要时先拉起嵌入式引擎，再启动界面 |
 | `Dockerfile` | 界面镜像，基于官方镜像，只加四个文件 |
 | `server.py` | 界面服务 + 转发层（纯文本 Layer A、AI 接口、Layer B） |
 | `index.html` | 页面骨架（无框架） |
 | `styles.css` | 主题变量与组件样式（含深色模式） |
 | `app.js` | 页面逻辑：批量并发、取消、复检、对比、ZIP、偏好、AI 接口配置 |
 | `llm-relay.py` | 可选：把只监听 127.0.0.1 的本地模型服务桥给容器（在 WSL 里跑） |
-| `start.sh` | Linux/macOS 启动脚本 |
+| `start.sh` | Linux/macOS/WSL 启动脚本（`up` / `allinone` / `logs` / `stop` / `status` / `rebuild`） |
+| `.env.example` | 端口、绑定地址、限额、并发的配置模板（复制成 `.env` 即可） |
+| `LICENSE` | MIT |
 
 运行时不会在宿主机写任何文件：容器 rootfs 只读，临时文件走 `/tmp`（tmpfs），随请求目录
 一起删除。
@@ -383,6 +404,27 @@ ports:
 **服务无鉴权，任何能访问该端口的人都能上传文件并拿到清洗结果。**
 只在可信网络里这么做，且不要映射到公网。
 
+## 移植与适配
+
+别人拿到这份仓库时，需要注意的就这几条：
+
+- **平台**：引擎镜像只有 `linux/amd64`。Apple Silicon 上要走模拟，
+  用 `DOCKER_DEFAULT_PLATFORM=linux/amd64 docker compose up -d --build`（能跑，但慢）。
+- **Docker 类型**：Docker Desktop 和 WSL 里的 dockerd 都行。差别只在「容器怎么找到本机服务」：
+  Docker Desktop 有 `host.docker.internal`，WSL dockerd 没有，服务端会自动回退到容器默认网关
+  （见上文「本地模型的网络拓扑」）。
+- **端口 / 地址**：改 `.env` 里的 `WM_PORT`、`WM_BIND`，不要改 compose 里的字面量。
+- **内存**：容器 `/tmp` 是 tmpfs（占内存）。一个清理请求约占文件大小的 3.3–3.7 倍；
+  内存紧就把 `--tmpfs /tmp:size=512m` 调小，或把 `WATERMARKS_WEB_CONCURRENCY` 降到 1。
+- **只读 rootfs + 非 root**：容器以 uid 10001 运行、根文件系统只读，只在 `/tmp` 写东西。
+  把 NFS/SMB 共享目录挂进来会破坏这个前提，不建议。
+- **Windows 用户**：装 Docker Desktop（WSL2 后端）就行，`start.sh` 在 Git Bash 或 WSL 里都能跑，
+  也可以直接用 `docker compose` 命令。注意宿主机的系统代理不会自动传给容器，
+  容器要访问云端 AI 接口得靠 Docker 自己的网络（WSL2 里通常能直连）。
+- **不需要 GPU、不需要模型权重**：像素级去水印本来就不在本项目范围内。
+
+---
+
 ## 离线安装
 
 目标机器访问不了 `ghcr.io` 时，在有网络的机器上导出镜像：
@@ -423,6 +465,10 @@ docker compose up -d --no-build
 清洗引擎来自 [guillaumemeyer/watermarks-remover](https://github.com/guillaumemeyer/watermarks-remover)（MIT）。
 本目录的 `server.py`、`index.html`、`app.js`、`styles.css`、`compose.yaml`、
 `Dockerfile`、`start.sh`、`llm-relay.py` 是在其之上做的界面与编排层。
+
+本仓库的代码（`server.py`、`index.html`、`app.js`、`styles.css`、`compose*.yaml`、
+`Dockerfile`、`docker/entrypoint.sh`、`start.sh`、`llm-relay.py`、`tools/`）以 **MIT** 许可发布，
+见 [LICENSE](LICENSE)。引擎本身不在本仓库内，按它自己的 MIT 许可使用。
 
 该工具适用于清理**你自己拥有或有权处理**的内容。请勿用于规避合规要求。
 

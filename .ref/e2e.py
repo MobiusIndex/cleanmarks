@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """端到端验证：直接打 http://127.0.0.1:8770 的新端点。"""
+import os
 import base64, json, sys, urllib.request, urllib.error
 from pathlib import Path
 
-BASE = "http://127.0.0.1:8770"
+BASE = os.environ.get("WM_BASE", "http://127.0.0.1:8770")
 FIX = Path(__file__).parent / "fixtures"
 
 def b64u(s: str) -> str:

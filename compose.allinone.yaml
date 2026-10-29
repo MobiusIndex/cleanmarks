@@ -1,0 +1,51 @@
+# 单容器（all-in-one）模式：引擎和界面跑在同一个容器里。
+#
+#   docker compose -f compose.allinone.yaml up -d --build
+#   docker compose -f compose.allinone.yaml logs -f
+#   docker compose -f compose.allinone.yaml down
+#
+# 和 compose.yaml 的区别只在进程布局：这里省掉 wr-core 容器，适合「一个人用、
+# 只想一条命令跑起来」的场景；两容器模式仍建议用于长期运行（引擎崩了不影响界面）。
+#
+# 想用普通 docker 而不是 compose：
+#   docker build -t watermarks-remover-webui .
+#   docker run -d --name wr-web -p 127.0.0.1:8770:8770 \
+#     -e WATERMARKS_EMBEDDED=1 -e WATERMARKS_UPSTREAM=http://127.0.0.1:8765 \
+#     --read-only --tmpfs /tmp --init watermarks-remover-webui
+
+name: watermarks-remover-webui-standalone
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: watermarks-remover-webui:standalone
+    ports:
+      - "${WM_BIND:-127.0.0.1}:${WM_PORT:-8770}:8770"
+    environment:
+      # 让入口脚本在本容器里拉起引擎，界面直连 127.0.0.1
+      WATERMARKS_EMBEDDED: "1"
+      WATERMARKS_UPSTREAM: http://127.0.0.1:8765
+      WATERMARKS_SCRIPTS: /app/scripts
+      WATERMARKS_MAX_INPUT_BYTES: ${WATERMARKS_MAX_INPUT_BYTES:-268435456}
+      WATERMARKS_MAX_BATCH_FILES: ${WATERMARKS_MAX_BATCH_FILES:-50}
+      WATERMARKS_WEB_CONCURRENCY: ${WATERMARKS_WEB_CONCURRENCY:-2}
+      WATERMARKS_WEB_TIMEOUT: ${WATERMARKS_WEB_TIMEOUT:-1800}
+      WATERMARKS_SERVER_API_KEY: ${WATERMARKS_SERVER_API_KEY:-}
+    read_only: true
+    tmpfs:
+      - /tmp
+    init: true
+    user: "10001:10001"
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD
+        - python3
+        - -c
+        - "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8770/api/ping',timeout=10)"
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 20s

@@ -12,6 +12,9 @@ FROM ghcr.io/guillaumemeyer/watermarks-remover:latest
 WORKDIR /app
 
 COPY server.py index.html app.js styles.css /app/
+# 基础镜像已经切到 USER 10001，构建期 chmod 会被拒（文件属主是 root），
+# 所以用 `sh 脚本` 的方式调用，不依赖执行位。
+COPY docker/entrypoint.sh /app/entrypoint.sh
 
 # 界面服务不需要 root，也不需要写文件系统（临时文件走 /tmp tmpfs）。
 USER 10001
@@ -23,4 +26,4 @@ ENV WATERMARKS_UPSTREAM=http://wr-core:8765 \
 
 EXPOSE 8770
 
-ENTRYPOINT ["python3", "/app/server.py"]
+ENTRYPOINT ["/bin/sh", "/app/entrypoint.sh"]

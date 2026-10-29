@@ -67,6 +67,23 @@ Linux / macOS also get a helper script:
 | Network | `ghcr.io` reachable on first build (offline install is covered below) |
 | Memory | the container `/tmp` is a tmpfs; peak usage is a few hundred MB per large file |
 
+### Two ways to run it
+
+| Mode | Command | Good for |
+| --- | --- | --- |
+| Two containers (default) | `docker compose up -d --build` | long-running: the engine gets its own container, a UI problem can't take it down |
+| Single container | `docker compose -f compose.allinone.yaml up -d --build` | "one command and go": engine and UI live in the same container |
+
+Without compose:
+
+```sh
+docker build -t watermarks-remover-webui .
+docker run -d --name wr-web -p 127.0.0.1:8770:8770   -e WATERMARKS_EMBEDDED=1 -e WATERMARKS_UPSTREAM=http://127.0.0.1:8765   --read-only --tmpfs /tmp --init watermarks-remover-webui
+```
+
+Port, bind address, size limits and concurrency all live in `.env` (`cp .env.example .env`),
+read by both `start.sh` and compose. `./start.sh allinone` is the single-container mode.
+
 ---
 
 ## Features
@@ -256,13 +273,17 @@ Response headers: `X-Wm-Report` (base64 report JSON), `X-Wm-Out-Name` (suggested
 | File | Purpose |
 | --- | --- |
 | `compose.yaml` | two services, tmpfs, healthcheck, read-only rootfs |
+| `compose.allinone.yaml` | single-container mode (engine and UI in one container) |
+| `docker/entrypoint.sh` | container entrypoint: optionally starts the embedded engine first |
 | `Dockerfile` | UI image based on the official engine image, adds four files |
 | `server.py` | UI server + proxy layer (text Layer A, AI interface, Layer B) |
 | `index.html` | page skeleton, no framework |
 | `styles.css` | theme variables, components, dark mode |
 | `app.js` | batching, cancel, re-check, compare, ZIP, preferences, AI settings |
 | `llm-relay.py` | optional: bridge a `127.0.0.1`-only model server to the container |
-| `start.sh` | Linux/macOS launcher |
+| `start.sh` | Linux/macOS/WSL launcher (`up` / `allinone` / `logs` / `stop` / `status` / `rebuild`) |
+| `.env.example` | template for port, bind address, limits and concurrency (copy to `.env`) |
+| `LICENSE` | MIT |
 | `tools/push-via-api.py` | push a commit through the GitHub Data API (see below) |
 | `.ref/` | end-to-end and edge-case tests, plus an OpenAI-compatible mock |
 
@@ -343,6 +364,28 @@ ports:
 **There is no authentication** — anyone who can reach the port can upload files and read the
 results. Only do this on a trusted network, and never expose it to the internet.
 
+## Portability notes
+
+Things to know if you are running this on your own machine:
+
+- **Platform**: the engine image is `linux/amd64` only. On Apple Silicon use
+  `DOCKER_DEFAULT_PLATFORM=linux/amd64 docker compose up -d --build` — it works, but under emulation.
+- **Docker flavour**: Docker Desktop and a plain dockerd inside WSL both work. The only difference is
+  how the container reaches host services: Docker Desktop resolves `host.docker.internal`, WSL's
+  dockerd does not, and the proxy layer falls back to the container's default gateway.
+- **Port / bind**: change `WM_PORT` and `WM_BIND` in `.env`, not the literals in `compose.yaml`.
+- **Memory**: the container's `/tmp` is a tmpfs (i.e. RAM). One clean request uses roughly 3.3–3.7×
+  the file size; if RAM is tight use `--tmpfs /tmp:size=512m` or set
+  `WATERMARKS_WEB_CONCURRENCY=1`.
+- **Read-only rootfs, non-root user**: the container runs as uid 10001 with a read-only filesystem
+  and only writes to `/tmp`. Mounting an NFS/SMB share into it breaks that assumption.
+- **Windows**: Docker Desktop with the WSL2 backend is enough; `start.sh` runs in Git Bash or WSL,
+  or just call `docker compose` directly. The host's system proxy is *not* inherited by containers —
+  outbound calls (e.g. to a cloud LLM endpoint) use Docker's own network.
+- **No GPU, no model weights required**: pixel-level watermark removal is out of scope anyway.
+
+---
+
 ## Offline install
 
 On a machine with network access:
@@ -384,6 +427,11 @@ docker compose up -d --no-build
 - Bundled tools inside the engine image: ExifTool, qpdf, Ghostscript, FFmpeg, c2patool.
 - The UI, proxy layer and compose wiring in this repository are built on top of that engine and use
   nothing but its public HTTP API.
+
+The code in this repository (`server.py`, `index.html`, `app.js`, `styles.css`, `compose*.yaml`,
+`Dockerfile`, `docker/entrypoint.sh`, `start.sh`, `llm-relay.py`, `tools/`) is released under the
+**MIT licence** — see [LICENSE](LICENSE). The engine itself is not part of this repository and is
+used under its own MIT licence.
 
 Use this only on content **you own or are allowed to process**. Do not use it to dodge compliance
 requirements.

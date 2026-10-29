@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """边界与并发检查：空文件、超长名、点文件、并发一致性、临时文件残留。"""
+import os
 import base64, io, json, os, random, sys, threading, urllib.request, urllib.error, zipfile
 
-BASE = "http://127.0.0.1:8770"
+BASE = os.environ.get("WM_BASE", "http://127.0.0.1:8770")
 FIX = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fixtures")
 
 def b64u(s): return base64.urlsafe_b64encode(s.encode()).decode().rstrip("=")
