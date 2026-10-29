@@ -412,3 +412,19 @@ docker compose up -d --no-build
 `Dockerfile`、`start.sh`、`llm-relay.py` 是在其之上做的界面与编排层。
 
 该工具适用于清理**你自己拥有或有权处理**的内容。请勿用于规避合规要求。
+
+## 发布到 GitHub
+
+仓库：<https://github.com/MobiusIndex/watermark-cleaner>（私有）
+
+这台机器上 `git push` 走 HTTP 代理会卡死（CONNECT 要 20–30 秒，之后 POST 阶段无限等待），
+而 `api.github.com` 走同一个代理是通的。所以更新用仓库里的脚本，它通过 Git Data API
+把本地提交原样写上去（blob 内容寻址，推完两边 SHA 完全一致）：
+
+```sh
+git add -A && git commit -m "…"
+python tools/push-via-api.py
+```
+
+代理换端口就用 `HTTPS_PROXY=http://127.0.0.1:7891 python tools/push-via-api.py`。
+`git push` 本身在代理恢复后也能用，只是目前这条路更稳。
