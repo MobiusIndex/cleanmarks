@@ -1,4 +1,4 @@
-# 这些文件也会进 WSL / Linux 容器，工作区里必须是 LF
+# Keep LF everywhere: these files also run inside Linux containers
 * text=auto eol=lf
 
 *.png binary

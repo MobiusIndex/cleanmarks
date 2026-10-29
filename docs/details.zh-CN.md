@@ -49,7 +49,7 @@
 | Anthropic Claude | `https://api.anthropic.com/v1` | claude-sonnet-4-5 |
 | Google Gemini | `https://generativelanguage.googleapis.com/v1beta/openai` | gemini-2.5-flash |
 | Ollama（本地，需装在 WSL） | `http://host.docker.internal:11434` | qwen3:8b |
-| LM Studio（Windows，本机够不到） | `http://host.docker.internal:1234` | local-model |
+| LM Studio（装在 Windows 主机上） | `http://host.docker.internal:1234` | local-model |
 
 Base URL 的路径会自动补全：结尾是 `/v1`、`/v2`、`/v3`、`/v4` 或 `/openai` 的补
 `/chat/completions`，其余补 `/v1/chat/completions`。协议可选 OpenAI 兼容或 Ollama 原生。
@@ -219,17 +219,15 @@ wr-core           官方清洗引擎
 
 ## 开发与自测
 
-Docker 跑在 WSL 里时，常见的做法是把编辑副本放 Windows、运行副本放 WSL。改完同步并重建：
+源码改完，重建并重启：
 
 ```sh
-wsl sh -c 'cd /mnt/f/<你的路径>/watermarks-remover-webui \
-  && cp server.py index.html app.js styles.css README.md /root/watermark-cleaner/ \
-  && cd /root/watermark-cleaner && docker compose build web && docker compose up -d'
+docker compose up -d --build
 ```
 
-只在一个目录里工作的话，直接 `docker compose up -d --build` 就够了。
+如果编辑目录与运行目录是两个位置（例如 Docker 跑在 WSL 或虚拟机里），先把改动同步过去再重建。
 
-回归脚本放在 `.ref/`：
+回归脚本（开发者本地使用，不入库）：
 
 | 脚本 | 覆盖 |
 | --- | --- |

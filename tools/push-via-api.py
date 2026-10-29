@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 """用 GitHub 的 Git Data API 推送本地提交（当 `git push` 过不了代理时用）。
 
-为什么不用 `git push`：这台机器上 git 的 HTTP 栈过代理会卡死（CONNECT 要 20–30 秒，
-之后 POST 阶段无限等待），而 `api.github.com` 走同一个代理很快。所以改成用 API 把
-本地提交原样写上去——blob 是内容寻址的，推完两边 SHA 完全一致。
+为什么不用 `git push`：有些 HTTP 代理会让 git 的 POST 阶段挂住（`api.github.com` 却很快），
+在受限网络下 `git push` 可能永远不返回。改用 API 把本地提交原样写上去——blob 是内容寻址的，
+推完两边 SHA 完全一致。
 
     python tools/push-via-api.py                # 推到当前分支（新分支会自动创建）
     python tools/push-via-api.py --to main      # 推到 main
     python tools/push-via-api.py --ff-main      # 推到当前分支，并把 main 快进到同一个提交
     python tools/push-via-api.py --tag v2.0.1   # 顺便在提交上打一个 tag
 
-需要：`~/.git-credentials` 里有一条可用的 github.com 凭据；环境变量
-`HTTPS_PROXY`（默认 http://127.0.0.1:7890）能连通 api.github.com。
+需要：`~/.git-credentials` 里有一条可用的 github.com 凭据。网络需要代理时，
+设 `GITHUB_PROXY` 或 `HTTPS_PROXY`（不设则用系统默认，通常是直连）。
 """
 from __future__ import annotations
 
@@ -27,7 +27,7 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-PROXY = os.environ.get("HTTPS_PROXY") or os.environ.get("https_proxy") or "http://127.0.0.1:7890"
+PROXY = os.environ.get("GITHUB_PROXY") or os.environ.get("HTTPS_PROXY") or os.environ.get("https_proxy") or ""
 
 
 def run(*args: str) -> bytes:
@@ -59,7 +59,8 @@ def main() -> int:
         return 1
     token = tok_m.group(1)
 
-    opener = urllib.request.build_opener(urllib.request.ProxyHandler({"http": PROXY, "https": PROXY}))
+    handler = urllib.request.ProxyHandler({"http": PROXY, "https": PROXY}) if PROXY else urllib.request.ProxyHandler({})
+    opener = urllib.request.build_opener(handler)
 
     def api(path: str, method: str = "GET", body: dict | None = None):
         req = urllib.request.Request(

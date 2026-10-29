@@ -1,11 +1,11 @@
-# 推 tag（v0.7.N）→ 自动构建并推送到 Docker Hub。
+# Pushing a v* tag builds the image and publishes it to Docker Hub.
 #
-# 为什么要它：这台开发机 git push 过代理会卡死，而 Actions 跑在 GitHub 服务器上，
-# 不经过本机网络，发镜像这条路最稳；别人 fork 后也能自己出一条镜像。
+# It runs on GitHub's own runners, so publishing never depends on the maintainer's
+# network, and a fork can publish its own image with no local setup.
 #
-# 一次性设置（仓库 Settings → Secrets and variables → Actions）：
-#   DOCKERHUB_USERNAME = 你的 Docker Hub 用户名
-#   DOCKERHUB_TOKEN   = Docker Hub 的 PAT（勾 read & write）
+# One-time setup (repository Settings -> Secrets and variables -> Actions):
+#   DOCKERHUB_USERNAME = Docker Hub username
+#   DOCKERHUB_TOKEN    = Docker Hub PAT with read & write
 name: Publish image
 
 on:
