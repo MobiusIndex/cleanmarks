@@ -367,8 +367,14 @@ docker compose up -d --no-build
 ```sh
 git checkout -b feat/whatever      # 每次改动先开分支
 git add -A && git commit -m "…"
-python tools/push-via-api.py --ff-main --tag v0.7.2   # 推分支 + 快进 main + 打 tag
+python tools/push-via-api.py --ff-main --tag v0.7.4   # 推分支 + 快进 main + 打 tag
 ```
+
+打 tag 之后，`.github/workflows/docker-publish.yml` 会在 GitHub 服务器上自动构建镜像并推到
+Docker Hub（`0.7.4` 与 `latest`）——**不经过本机网络**，所以本机 git push 卡死也影响不到发镜像。
+首次使用前需在仓库 Settings → Secrets and variables → Actions 加两个 secret：
+`DOCKERHUB_USERNAME` 与 `DOCKERHUB_TOKEN`（PAT，勾 read & write）。本地手动 `docker push`
+仍可用于临时试。
 
 代理换端口就用 `HTTPS_PROXY=http://127.0.0.1:7891 python tools/push-via-api.py`。
 `git push` 本身在代理恢复后也能用，只是目前这条路更稳。

@@ -15,6 +15,7 @@ documents, audio and video — locally, in Docker.
 *Bilingual UI — the `EN` button in the header switches language; screenshots show English.*
 
 [![Docker Hub](https://img.shields.io/badge/docker Hub-2560EB?logo=docker&logoColor=white)](https://hub.docker.com/r/indexmobius/watermarks-remover-webui)  
+[![Publish image](https://github.com/MobiusIndex/watermarks-remover-webui/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/MobiusIndex/watermarks-remover-webui/actions/workflows/docker-publish.yml)  
 
 ```sh
 git clone https://github.com/MobiusIndex/watermarks-remover-webui && cd watermarks-remover-webui

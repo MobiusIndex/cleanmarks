@@ -15,6 +15,7 @@
 *界面中英双语（右上角语言按钮切换），截图是英文界面。*
 
 [![Docker Hub](https://img.shields.io/badge/docker Hub-2560EB?logo=docker&logoColor=white)](https://hub.docker.com/r/indexmobius/watermarks-remover-webui)  
+[![Publish image](https://github.com/MobiusIndex/watermarks-remover-webui/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/MobiusIndex/watermarks-remover-webui/actions/workflows/docker-publish.yml)  
 
 ```sh
 git clone https://github.com/MobiusIndex/watermarks-remover-webui && cd watermarks-remover-webui

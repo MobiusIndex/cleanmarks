@@ -333,8 +333,14 @@ Data API:
 ```sh
 git checkout -b feat/whatever      # 每次改动开分支
 git add -A && git commit -m "…"
-python tools/push-via-api.py --ff-main --tag v0.7.2   # 推分支 + 快进 main + 打 tag
+python tools/push-via-api.py --ff-main --tag v0.7.4   # 推分支 + 快进 main + 打 tag
 ```
+
+打 tag 之后，`.github/workflows/docker-publish.yml` 会在 GitHub 服务器上自动构建镜像
+并推到 Docker Hub（`0.7.4` 与 `latest`）——**不经过本机网络**，所以本机 git push 卡死
+也影响不到发镜像。首次使用前需要在仓库 Settings → Secrets and variables → Actions 里
+加两个 secret：`DOCKERHUB_USERNAME` 与 `DOCKERHUB_TOKEN`（PAT，勾 read & write）。
+本地手动 `docker push` 仍然可用，适合临时试。
 
 **Versioning** — this project is `0.7.N`: every push bumps the last digit (`0.7.1` → `0.7.2` …)
 and gets a matching `v0.7.N` tag + release. `server.py`'s `WEB_VERSION` is the source of truth.
