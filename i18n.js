@@ -239,9 +239,9 @@ const DICT = {
     'Local models never leave your machine. If the container cannot resolve host.docker.internal it ' +
     'falls back to the Docker gateway; if Ollama only listens on 127.0.0.1, bridge it with ' +
     'llm-relay.py inside WSL.',
-  '实测：WSL 与 Windows 不共享 loopback，容器到不了 Windows 上的 LM Studio。本地跑请把模型服务装到 WSL，或直接用云端 API。':
-    'Measured: WSL and Windows do not share loopback, so the container cannot reach LM Studio on ' +
-    'Windows. Run the model server inside WSL, or use a cloud API.',
+  '容器与 Windows 主机不共享 loopback，通常到不了 Windows 上的 LM Studio。本地跑请把模型服务装进 WSL/Linux，或直接用云端 API。':
+    'The container does not share loopback with the Windows host, so LM Studio there is usually ' +
+    'unreachable. Run the model server inside WSL/Linux, or use a cloud API.',
   '任何提供 /v1/chat/completions 的服务都可以。':
     'Anything that serves /v1/chat/completions works.',
 
@@ -257,7 +257,7 @@ const DICT = {
   '百度千帆': 'Baidu Qianfan',
   '硅基流动 SiliconFlow': 'SiliconFlow',
   'Ollama（本地，需装在 WSL）': 'Ollama (local, install in WSL)',
-  'LM Studio（Windows，本机够不到）': 'LM Studio (Windows host, unreachable)',
+  'LM Studio（装在 Windows 主机上）': 'LM Studio (on a Windows host)',
   '自定义（OpenAI 兼容）': 'Custom (OpenAI-compatible)',
 };
 
