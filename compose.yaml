@@ -1,0 +1,64 @@
+# 水印清理工具 —— 整套跑在 Docker 里，宿主机不留运行时文件。
+#
+#   docker compose up -d --build     启动（首次）
+#   docker compose up -d             启动（镜像已构建）
+#   docker compose logs -f web       看日志
+#   docker compose down              停止并清理
+#   docker compose down --rmi local  连同本项目镜像一起删
+#
+# 浏览器打开 http://127.0.0.1:8770
+#
+# 说明：只固定 wr-core 的镜像 digest 会让它绑死在一个版本上，用 tag 更便于
+# 后续更新；web 镜像基于它构建，所以两者要一起更新。
+
+name: watermark-cleaner
+
+services:
+  # 官方核心服务：文本 Layer A、图片/文档/音视频元数据与 C2PA 剥离。
+  # 只在容器网络内暴露，不映射到宿主机端口，避免绕过界面直连。
+  wr-core:
+    image: ghcr.io/guillaumemeyer/watermarks-remover:latest
+    expose:
+      - "8765"
+    environment:
+      # 留空表示不鉴权。仅本机使用时可保持默认。
+      WATERMARKS_SERVER_API_KEY: ${WATERMARKS_SERVER_API_KEY:-}
+    read_only: true
+    tmpfs:
+      - /tmp
+    init: true
+    user: "10001:10001"
+    restart: unless-stopped
+
+  # 界面 + API 转发。浏览器不能直连 wr-core（它不发 CORS 头），
+  # 纯文本的 Layer A 清理也在这里用进程内调用补上。
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: watermark-cleaner-web:local
+    depends_on:
+      - wr-core
+    ports:
+      # 只绑回环地址，外网访问不到。要局域网共享改成 "8770:8770"，
+      # 但服务无鉴权，务必确认所在网络可信。
+      - "127.0.0.1:8770:8770"
+    environment:
+      WATERMARKS_UPSTREAM: http://wr-core:8765
+      WATERMARKS_SCRIPTS: /app/scripts
+    read_only: true
+    tmpfs:
+      - /tmp
+    init: true
+    user: "10001:10001"
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD
+        - python3
+        - -c
+        - "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8770/api/ping',timeout=10)"
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 15s
