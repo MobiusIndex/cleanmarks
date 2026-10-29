@@ -179,7 +179,7 @@ const PROVIDERS = [
   { id: 'anthropic', name: 'Anthropic Claude', base: 'https://api.anthropic.com/v1', models: ['claude-sonnet-4-5', 'claude-haiku-4-5'], hint: '走 Anthropic 的 OpenAI 兼容端点。' },
   { id: 'gemini', name: 'Google Gemini', base: 'https://generativelanguage.googleapis.com/v1beta/openai', models: ['gemini-2.5-flash', 'gemini-2.5-pro'], hint: 'Gemini 的 OpenAI 兼容层，base 以 /openai 结尾。' },
   { id: 'ollama', name: 'Ollama（本地，需装在 WSL）', base: 'http://host.docker.internal:11434', models: ['qwen3:8b', 'llama3.1:8b'], hint: '本地模型不出网。容器解析不了 host.docker.internal 时会自动改用 Docker 网关地址；若 Ollama 只监听 127.0.0.1，用 llm-relay.py 在 WSL 里桥一道。' },
-  { id: 'lmstudio', name: 'LM Studio（Windows，本机够不到）', base: 'http://host.docker.internal:1234', models: ['local-model'], hint: '实测：WSL 与 Windows 不共享 loopback，容器到不了 Windows 上的 LM Studio。本地跑请把模型服务装到 WSL，或直接用云端 API。' },
+  { id: 'lmstudio', name: 'LM Studio（装在 Windows 主机上）', base: 'http://host.docker.internal:1234', models: ['local-model'], hint: '容器与 Windows 主机不共享 loopback，通常到不了 Windows 上的 LM Studio。本地跑请把模型服务装进 WSL/Linux，或直接用云端 API。' },
   { id: 'custom', name: '自定义（OpenAI 兼容）', base: '', models: [], hint: '任何提供 /v1/chat/completions 的服务都可以。' },
 ];
 

@@ -77,7 +77,7 @@ Base URL 的路径会自动补全：结尾是 `/v1`、`/v2`、`/v3`、`/v4` 或 
 - 用云端服务商时，**被改写的正文会发送给对方**。介意隐私就把 Base URL 指向本地模型。
 - 「测试连接」发一个最小请求，返回延迟、模型名和实际命中的端点。
 
-### 本地模型的网络拓扑（本机实测）
+### 本地模型的网络拓扑
 
 Docker 跑在 WSL 里时：
 
@@ -93,7 +93,7 @@ Docker 跑在 WSL 里时：
   ```
 
 - **Windows 上的 LM Studio 容器够不到**：WSL 与 Windows 不共享 loopback，容器也到不了
-  Windows 的局域网地址（实测超时）。要本地跑请把模型服务装进 WSL，或用云端 API。
+  Windows 主机上的局域网地址（通常不可达）。要本地跑请把模型服务装进 WSL，或用云端 API。
 
 ---
 
@@ -369,13 +369,12 @@ python tools/push-via-api.py --ff-main --tag v0.7.4   # 推分支 + 快进 main 
 ```
 
 打 tag 之后，`.github/workflows/docker-publish.yml` 会在 GitHub 服务器上自动构建镜像并推到
-Docker Hub（`0.7.4` 与 `latest`）——**不经过本机网络**，所以本机 git push 卡死也影响不到发镜像。
-首次使用前需在仓库 Settings → Secrets and variables → Actions 加两个 secret：
-`DOCKERHUB_USERNAME` 与 `DOCKERHUB_TOKEN`（PAT，勾 read & write）。本地手动 `docker push`
-仍可用于临时试。
+Docker Hub（`0.7.4` 与 `latest`）——发镜像这条路完全不经过维护者的网络。首次使用前需在仓库
+Settings → Secrets and variables → Actions 加两个 secret：`DOCKERHUB_USERNAME` 与
+`DOCKERHUB_TOKEN`（PAT，勾 read & write）。本地手动 `docker push` 仍可用于临时试。
 
-代理换端口就用 `HTTPS_PROXY=http://127.0.0.1:7891 python tools/push-via-api.py`。
-`git push` 本身在代理恢复后也能用，只是目前这条路更稳。
+网络需要代理时，给脚本设 `GITHUB_PROXY`（或 `HTTPS_PROXY`）即可，例如
+`GITHUB_PROXY=http://<代理地址>:<端口> python tools/push-via-api.py`。
 
 **版本号** — 本项目用 `0.7.N`：每次推送把最后一位加一（`0.7.1` → `0.7.2` …），并打对应
 的 `v0.7.N` tag + Release。版本号以 `server.py` 里的 `WEB_VERSION` 为准。
