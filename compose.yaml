@@ -8,8 +8,8 @@
 #
 # 浏览器打开 http://127.0.0.1:8770
 #
-# 说明：只固定 wr-core 的镜像 digest 会让它绑死在一个版本上，用 tag 更便于
-# 后续更新；web 镜像基于它构建，所以两者要一起更新。
+# 说明：wr-core 与 web 镜像共用同一个引擎 digest（web 的 Dockerfile 也是基于它构建），
+# 所以两者要一起更新。钉 digest 是为了可复现——换引擎时改这两处 + 跑 tests/。
 
 name: cleanmarks
 
@@ -17,7 +17,7 @@ services:
   # 官方核心服务：文本 Layer A、图片/文档/音视频元数据与 C2PA 剥离。
   # 只在容器网络内暴露，不映射到宿主机端口，避免绕过界面直连。
   wr-core:
-    image: ghcr.io/guillaumemeyer/watermarks-remover:latest
+    image: ghcr.io/guillaumemeyer/watermarks-remover@sha256:5850a577c15724b02e9b0e44d3e52a9064ca983270f228c893a26b73734d07fd
     expose:
       - "8765"
     environment:
@@ -36,7 +36,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: watermark-cleaner-web:local
+    image: cleanmarks:local
     depends_on:
       - wr-core
     ports:

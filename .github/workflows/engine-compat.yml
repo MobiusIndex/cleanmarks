@@ -1,0 +1,129 @@
+# 每周检查上游引擎：用上游最新的构建跑一遍全部回归。
+#
+# 为什么需要它：本镜像按 digest 钉死了引擎（可复现），代价是上游更新时你不会知道。
+# 这个工作流每周：
+#   1. 去 ghcr 取上游 latest 的 digest 与最新发布号
+#   2. 用「上游最新构建」重建镜像并起容器
+#   3. 跑 tests/ 里的全部断言
+#   4. 全绿且 digest 变了 → 自动开 issue：「可以升级了」
+#      断言红了            → 自动开 issue：「上游改坏了接口」
+# 这样上游的变化会在周一主动找你，而不是等用户报 bug。
+name: Engine compatibility
+
+on:
+  schedule:
+    - cron: '17 3 * * 1'        # 每周一 03:17 UTC（北京时间 11:17）
+  workflow_dispatch:
+  push:
+    paths:
+      - 'tests/**'
+      - 'Dockerfile'
+      - '.github/workflows/engine-compat.yml'
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: engine-compat
+  cancel-in-progress: false
+
+jobs:
+  compat:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve upstream engine digest
+        id: eng
+        run: |
+          set -euo pipefail
+          REPO="guillaumemeyer/watermarks-remover"
+          TOKEN="$(curl -fsS "https://ghcr.io/token?scope=repository:${REPO}:pull&service=ghcr.io" | jq -r .token)"
+
+          TAGS="$(curl -fsS -H "Authorization: Bearer ${TOKEN}" "https://ghcr.io/v2/${REPO}/tags/list" | jq -r '.tags[]')"
+          NEWEST_TAG="$(printf '%s\n' "$TAGS" | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1 || true)"
+
+          LATEST_DIGEST="$(curl -fsSI -H "Authorization: Bearer ${TOKEN}" \
+            -H "Accept: application/vnd.oci.image.index.v1+json, application/vnd.docker.distribution.manifest.list.v2+json" \
+            "https://ghcr.io/v2/${REPO}/manifests/latest" \
+            | tr -d '\r' | sed -n 's/^[Dd]ocker-[Cc]ontent-[Dd]igest: //p' | head -1)"
+
+          PINNED="$(sed -n 's/^ARG ENGINE_REF=.*@//p' Dockerfile | head -1)"
+
+          {
+            echo "latest_digest=${LATEST_DIGEST}"
+            echo "newest_tag=${NEWEST_TAG}"
+            echo "pinned=${PINNED}"
+          } >> "$GITHUB_OUTPUT"
+
+          echo "upstream latest: ${LATEST_DIGEST} (newest release ${NEWEST_TAG})"
+          echo "pinned here:     ${PINNED}"
+
+      - name: Build against the newest upstream build
+        env:
+          DIGEST: ${{ steps.eng.outputs.latest_digest }}
+        run: |
+          docker build --build-arg "ENGINE_REF=ghcr.io/guillaumemeyer/watermarks-remover@${DIGEST}" -t compat:test .
+
+      - name: Start it
+        run: |
+          docker run -d --name compat -p 127.0.0.1:8770:8770 \
+            --add-host=host.docker.internal:host-gateway \
+            --tmpfs /tmp:rw,size=512m compat:test
+
+      - name: Wait for the UI
+        run: |
+          for i in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:8770/api/ping; then echo " -> ready"; exit 0; fi
+            sleep 3
+          done
+          echo "::error::UI did not come up"
+          docker logs compat | tail -30
+          exit 1
+
+      - name: Licences are present in the image
+        run: docker run --rm --entrypoint /bin/sh compat:test -c 'ls -1 /app/licenses'
+
+      - name: Regression suite
+        run: |
+          set -euo pipefail
+          python3 tests/mock_openai.py 8791 &
+          sleep 1
+          export WM_BASE=http://127.0.0.1:8770
+          for t in e2e.py test_split.py test_edges.py test_proto.py test_units.py e2e_llm.py; do
+            echo "--- ${t}"
+            python3 "tests/${t}"
+          done
+
+      - name: Container logs on failure
+        if: failure()
+        run: docker logs compat | tail -80
+
+      - name: Report that the pin can move
+        if: success() && steps.eng.outputs.latest_digest != steps.eng.outputs.pinned
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NEW_DIGEST: ${{ steps.eng.outputs.latest_digest }}
+          NEW_TAG: ${{ steps.eng.outputs.newest_tag }}
+          PINNED: ${{ steps.eng.outputs.pinned }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          TITLE="Engine can be bumped (upstream ${NEW_TAG})"
+          if gh issue list --state open --search "in:title Engine can be bumped" --json number | jq -e 'length > 0' >/dev/null; then
+            echo "Already tracked, skipping"
+            exit 0
+          fi
+          BODY="$(printf 'The weekly compatibility run passed against the current upstream `latest`.\n\n- New digest: `%s`\n- Newest tagged release: `%s`\n- Pinned here: `%s`\n\nTo adopt it:\n\n1. Set `ARG ENGINE_REF=ghcr.io/guillaumemeyer/watermarks-remover@%s` in the Dockerfile.\n2. Set the same reference as the `wr-core` image in `compose.yaml`.\n3. Bump `WEB_VERSION` in `server.py`.\n4. Tag and release — CI publishes the new image.\n\nRun: %s\n' "$NEW_DIGEST" "$NEW_TAG" "$PINNED" "$NEW_DIGEST" "$RUN_URL")"
+          gh issue create --title "$TITLE" --body "$BODY"
+
+      - name: Report a broken upstream build
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NEW_DIGEST: ${{ steps.eng.outputs.latest_digest }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          BODY="$(printf 'The compatibility suite failed against upstream `%s`.\n\nThe engine pin was not changed.\n\nRun: %s\n' "$NEW_DIGEST" "$RUN_URL")"
+          gh issue create --title "Engine regression against upstream ${NEW_DIGEST}" --body "$BODY" || true

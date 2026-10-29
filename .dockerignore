@@ -6,6 +6,7 @@
 tools
 docker/entrypoint.sh.bak
 *.md
+!THIRD_PARTY_NOTICES.md
 ui-*.png
 LICENSE
 .env

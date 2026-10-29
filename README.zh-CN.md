@@ -14,8 +14,13 @@
 
 *界面中英双语（右上角语言按钮切换），截图是英文界面。*
 
+**内置引擎：** 在 Dockerfile 里按 digest 钉死（当前是上游 `latest` 那一版——它包含 v0.7.0 之后
+尚未发版的修复，例如 DOCX 的 `AppVersion` 修复，否则 Word 会报「内容无法读取」）。钉 digest 保证
+构建可复现；每周有一次任务用上游最新构建重跑全部断言，确认安全就自动开 issue 提醒换 pin。
+
 [![Docker Hub](https://img.shields.io/badge/docker Hub-2560EB?logo=docker&logoColor=white)](https://hub.docker.com/r/indexmobius/cleanmarks)  
 [![Publish image](https://github.com/MobiusIndex/cleanmarks/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/MobiusIndex/cleanmarks/actions/workflows/docker-publish.yml)  
+[![Engine compatibility](https://github.com/MobiusIndex/cleanmarks/actions/workflows/engine-compat.yml/badge.svg)](https://github.com/MobiusIndex/cleanmarks/actions/workflows/engine-compat.yml)  
 
 ```sh
 git clone https://github.com/MobiusIndex/cleanmarks && cd cleanmarks
@@ -58,7 +63,17 @@ docker run -d --name cleanmarks -p 127.0.0.1:8770:8770   --tmpfs /tmp:rw,size=51
 - [开发与自测](docs/details.zh-CN.md#开发与自测) — 116 项断言
 - [常见问题](docs/details.zh-CN.md#常见问题) · [局域网共享](docs/details.zh-CN.md#局域网共享)
 
+## 合理使用
+
+本工具用于**你自己拥有或有权处理**的内容——给自己的照片、文档、音视频做隐私加固。不用于学术造假、
+不用于把 AI 生成内容伪装成人类原创、不用于抹掉他人作品上的标记。使用者需自行遵守当地法律；
+维护者不对误用承担责任。
+
 ## 许可
 
-引擎 © [guillaumemeyer/watermarks-remover](https://github.com/guillaumemeyer/watermarks-remover)（MIT）；
-本仓库自己的代码以 **MIT** 发布，见 [LICENSE](LICENSE)。只适用于清理你自己拥有或有权处理的内容。
+本仓库自己的代码以 **MIT** 发布，见 [LICENSE](LICENSE)。
+
+清洗引擎来自 [guillaumemeyer/watermarks-remover](https://github.com/guillaumemeyer/watermarks-remover)
+（© 2026 Guillaume Meyer and contributors，MIT），它被一并打包进发布镜像；其版权声明，以及镜像内
+FFmpeg（GPL-2.0）、ExifTool、qpdf、c2patool 的许可证，都随镜像分发在 `/app/licenses/` 下。
+清单与源码获取方式见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。

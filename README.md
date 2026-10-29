@@ -14,8 +14,14 @@ documents, audio and video — locally, in Docker.
 
 *Bilingual UI — the `EN` button in the header switches language; screenshots show English.*
 
+**Bundled engine:** pinned by digest in the Dockerfile (currently the upstream `latest` build — it carries
+fixes not yet in `v0.7.0`, such as the DOCX `AppVersion` fix that keeps Word from reporting unreadable
+content). Pinning makes builds reproducible; a weekly job re-runs the whole suite against the newest
+upstream build and opens an issue when it is safe to move the pin.
+
 [![Docker Hub](https://img.shields.io/badge/docker Hub-2560EB?logo=docker&logoColor=white)](https://hub.docker.com/r/indexmobius/cleanmarks)  
 [![Publish image](https://github.com/MobiusIndex/cleanmarks/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/MobiusIndex/cleanmarks/actions/workflows/docker-publish.yml)  
+[![Engine compatibility](https://github.com/MobiusIndex/cleanmarks/actions/workflows/engine-compat.yml/badge.svg)](https://github.com/MobiusIndex/cleanmarks/actions/workflows/engine-compat.yml)  
 
 ```sh
 git clone https://github.com/MobiusIndex/cleanmarks && cd cleanmarks
@@ -58,8 +64,19 @@ Extension-less files are sniffed by magic bytes.
 - [Development & tests](docs/details.md#development-and-tests) — 116 assertions
 - [FAQ](docs/details.md#faq) · [LAN sharing](docs/details.md#sharing-on-a-lan)
 
+## Responsible use
+
+This tool is for content **you own or are authorised to process** — privacy hardening of your own
+photos, documents, audio and video. It is not for academic fraud, for passing AI output off as
+human-written, or for stripping marks from someone else's work. Users are responsible for complying
+with local law; the maintainers accept no liability for misuse.
+
 ## Licence
 
-Engine © [guillaumemeyer/watermarks-remover](https://github.com/guillaumemeyer/watermarks-remover) (MIT).
-This repository's own code is **MIT** — see [LICENSE](LICENSE). Use it only on content you own or are
-allowed to process.
+This repository's own code is **MIT** — see [LICENSE](LICENSE).
+
+The cleaning engine is [guillaumemeyer/watermarks-remover](https://github.com/guillaumemeyer/watermarks-remover)
+(© 2026 Guillaume Meyer and contributors, MIT); it is redistributed inside the published image, and its
+notice — together with the licences of the bundled FFmpeg (GPL-2.0), ExifTool, qpdf and c2patool — ships
+in the image at `/app/licenses/`. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for the inventory
+and where to obtain the corresponding sources.
