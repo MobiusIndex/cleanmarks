@@ -17,6 +17,9 @@
 ARG ENGINE_REF=ghcr.io/guillaumemeyer/watermarks-remover@sha256:5850a577c15724b02e9b0e44d3e52a9064ca983270f228c893a26b73734d07fd
 FROM ${ENGINE_REF}
 
+# ARG 在 FROM 之前只作用于 FROM 行；要在 LABEL 里引用必须重新声明一次。
+ARG ENGINE_REF
+
 WORKDIR /app
 
 COPY server.py index.html app.js i18n.js styles.css /app/
