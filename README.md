@@ -7,11 +7,14 @@ cleaning engine: strip C2PA / EXIF / XMP / generator metadata and invisible Unic
 documents, audio and video — locally, in Docker.
 
 > Not a fork. This is a UI + proxy + compose layer on top of the official image
-> `ghcr.io/guillaumemeyer/watermarks-remover` (MIT). The engine is not bundled, no keys, no telemetry.
+> `ghcr.io/guillaumemeyer/watermarks-remover` (MIT). The engine source is not vendored here
+> (no keys, no telemetry) — but the published Docker Hub image ships it, so one `docker run` works.
 
 ![Web UI](ui-final.png)
 
 *Bilingual UI — the `EN` button in the header switches language; screenshots show English.*
+
+[![Docker Hub](https://img.shields.io/badge/docker Hub-2560EB?logo=docker&logoColor=white)](https://hub.docker.com/r/indexmobius/watermarks-remover-webui)  
 
 ```sh
 git clone https://github.com/MobiusIndex/watermarks-remover-webui && cd watermarks-remover-webui
@@ -19,6 +22,12 @@ docker compose up -d --build      # first run pulls the engine image (~1 GB)
 ```
 
 Open <http://127.0.0.1:8770>. Docker 24+ / Compose v2, ~3 GB disk.
+
+Or skip the build entirely — the image is on Docker Hub (engine included, one container):
+
+```sh
+docker run -d --name watermarks-remover-webui -p 127.0.0.1:8770:8770   --tmpfs /tmp:rw,size=512m indexmobius/watermarks-remover-webui:latest
+```
 
 Prefer one container? `docker compose -f compose.allinone.yaml up -d --build` — engine and UI in the
 same container. Port, bind address and limits live in `.env` (`cp .env.example .env`).

@@ -44,6 +44,8 @@ services:
       # WM_BIND 改成 0.0.0.0 —— 服务无鉴权，务必确认所在网络可信。
       - "${WM_BIND:-127.0.0.1}:${WM_PORT:-8770}:8770"
     environment:
+      # 两容器模式：引擎在 wr-core 容器里，界面不要在本地再拉一个
+      WATERMARKS_EMBEDDED: "0"
       WATERMARKS_UPSTREAM: http://wr-core:8765
       WATERMARKS_SCRIPTS: /app/scripts
       WATERMARKS_MAX_INPUT_BYTES: ${WATERMARKS_MAX_INPUT_BYTES:-268435456}

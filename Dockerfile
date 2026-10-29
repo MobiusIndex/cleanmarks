@@ -19,7 +19,11 @@ COPY docker/entrypoint.sh /app/entrypoint.sh
 # 界面服务不需要 root，也不需要写文件系统（临时文件走 /tmp tmpfs）。
 USER 10001
 
-ENV WATERMARKS_UPSTREAM=http://wr-core:8765 \
+# 默认按「单容器」跑：入口脚本在本容器里拉起引擎，界面连 127.0.0.1。
+# 这样 `docker run` 一条命令就能用；compose.yaml 会把它改回两容器模式
+# （WATERMARKS_EMBEDDED=0 + 上游指向 wr-core 容器）。
+ENV WATERMARKS_EMBEDDED=1 \
+    WATERMARKS_UPSTREAM=http://127.0.0.1:8765 \
     WATERMARKS_SCRIPTS=/app/scripts \
     WATERMARKS_WEB_PORT=8770 \
     PYTHONUNBUFFERED=1
