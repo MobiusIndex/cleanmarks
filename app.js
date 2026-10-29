@@ -8,6 +8,8 @@
 
 const $ = (id) => document.getElementById(id);
 const API = '/api';
+// i18n.js 在本文件之前加载；单独放进浏览器当脚本调试时也不能崩
+const WMI = window.WM_I18N || { isEn: () => false, t: (x) => x, setLang() {} };
 
 const S = {
   meta: null,
@@ -243,9 +245,10 @@ function llmFor(it) {
 }
 
 function llmLabel() {
-  if (!LLM.enabled) return '未配置';
+  if (!LLM.enabled) return WMI.isEn() ? 'Not configured' : '未配置';
   const p = providerById(LLM.provider);
-  return `${p.name}${LLM.model ? ' · ' + LLM.model : ''}`;
+  const name = WMI.t(p.name) || p.name;
+  return `${name}${LLM.model ? ' · ' + LLM.model : ''}`;
 }
 
 function fillLLMForm() {
@@ -308,7 +311,10 @@ function updateLLMStatus() {
     box.textContent = '已启用，但 Base URL 或模型名还没填。';
   } else {
     box.className = 'status-line ok';
-    box.textContent = `已启用：${llmLabel()}｜策略 ${LLM.strategy || '未设置'}`;
+    const strategy = LLM.strategy || (WMI.isEn() ? 'not set' : '未设置');
+    box.textContent = WMI.isEn()
+      ? `Enabled: ${llmLabel()} — strategy ${strategy}`
+      : `已启用：${llmLabel()}｜策略 ${strategy}`;
   }
   $('llmDot').hidden = !LLM.enabled;
 }
@@ -854,9 +860,15 @@ function updateStats() {
   if (!n) {
     stats.textContent = '';
   } else {
-    stats.innerHTML = `<b>${n}</b> 个文件 <span class="sep">·</span> ${fmt(totalIn)}`
-      + (hit ? ` <span class="sep">·</span> 有标记 <b>${hit}</b> 个` : '')
-      + (done ? ` <span class="sep">·</span> 已清理 <b>${done}</b>，输出 ${fmt(totalOut)}` : '');
+    if (WMI.isEn()) {
+      stats.innerHTML = `<b>${n}</b> file${n === 1 ? '' : 's'} <span class="sep">·</span> ${fmt(totalIn)}`
+        + (hit ? ` <span class="sep">·</span> <b>${hit}</b> flagged` : '')
+        + (done ? ` <span class="sep">·</span> <b>${done}</b> cleaned, output ${fmt(totalOut)}` : '');
+    } else {
+      stats.innerHTML = `<b>${n}</b> 个文件 <span class="sep">·</span> ${fmt(totalIn)}`
+        + (hit ? ` <span class="sep">·</span> 有标记 <b>${hit}</b> 个` : '')
+        + (done ? ` <span class="sep">·</span> 已清理 <b>${done}</b>，输出 ${fmt(totalOut)}` : '');
+    }
   }
 
   const anyReady = S.items.some((i) => i.status !== 'working');
@@ -1351,6 +1363,17 @@ async function downloadZip() {
 }
 
 /* ------------------------------------------------------------ 事件 */
+
+document.addEventListener('wm:lang', () => {
+  // 统计条、能力卡片、卡片状态都是 JS 拼出来的，切语言后重绘一遍
+  try {
+    if (S.meta) { renderCaps(); renderFmt(); }
+    updateStats();
+    updateLLMStatus();
+    updateStatus();
+    renderList();
+  } catch { /* 还没初始化完就忽略 */ }
+});
 
 function bindEvents() {
   const drop = $('drop');

@@ -11,7 +11,7 @@ FROM ghcr.io/guillaumemeyer/watermarks-remover:latest
 
 WORKDIR /app
 
-COPY server.py index.html app.js styles.css /app/
+COPY server.py index.html app.js i18n.js styles.css /app/
 # 基础镜像已经切到 USER 10001，构建期 chmod 会被拒（文件属主是 root），
 # 所以用 `sh 脚本` 的方式调用，不依赖执行位。
 COPY docker/entrypoint.sh /app/entrypoint.sh

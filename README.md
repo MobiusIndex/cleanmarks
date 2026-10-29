@@ -21,6 +21,9 @@ machine, in Docker.
 
 ![Web UI](ui-final.png)
 
+*The interface is available in Chinese and English — the button next to the theme toggle switches
+language at runtime. Screenshots in this document show the English UI.*
+
 **What it does**
 
 - Removes C2PA / Content Credentials manifests
@@ -97,6 +100,8 @@ read by both `start.sh` and compose. `./start.sh allinone` is the single-contain
 - **Cancel**: any batch can be aborted; finished items keep their results.
 - **Compare**: drag a splitter to compare before/after for images.
 - **Light/dark**: follows the system theme, toggle in the header, remembered in `localStorage`.
+- **Bilingual UI**: Chinese / English toggle in the header; the first visit follows the browser
+  language and the choice is remembered. (The screenshots here show the English UI.)
 - Per-item actions: **inspect / clean / download / compare / re-clean / remove**.
   Up to 200 files at once; 2 concurrent cleans, 4 concurrent inspections.
 
