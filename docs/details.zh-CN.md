@@ -227,7 +227,7 @@ docker compose up -d --build
 
 如果编辑目录与运行目录是两个位置（例如 Docker 跑在 WSL 或虚拟机里），先把改动同步过去再重建。
 
-回归脚本（开发者本地使用，不入库）：
+回归脚本在 `tests/`，针对运行中的实例跑：
 
 | 脚本 | 覆盖 |
 | --- | --- |
@@ -240,11 +240,15 @@ docker compose up -d --build
 | `mock_openai.py` | 假 OpenAI 兼容服务端，供上面两个脚本使用 |
 
 ```sh
-cd .ref && python e2e.py && python e2e_llm.py && python test_split.py \n  && python test_edges.py && python test_proto.py && python test_units.py
+python3 tests/mock_openai.py 8791 &          # e2e_llm.py 要用它
+export WM_BASE=http://127.0.0.1:8770
+for t in e2e test_split test_edges test_proto test_units e2e_llm; do python3 "tests/$t.py"; done
 ```
 
 共 116 项断言：39（基础链路）+ 18（AI 接口）+ 11（响应解析）+ 9（边界并发）
-+ 11（协议层）+ 28（纯函数单测）。
++ 11（协议层）+ 28（纯函数单测）。同一套断言每周由 CI（`.github/workflows/engine-compat.yml`）
+用上游最新引擎跑一遍，引擎侧一改就是红灯，而不是等用户报 bug。同一套断言每周由 CI（`.github/workflows/engine-compat.yml`）
+用上游最新引擎跑一遍，引擎侧一改就是红灯，而不是等用户报 bug。
 
 ### 安全与健壮性边界
 

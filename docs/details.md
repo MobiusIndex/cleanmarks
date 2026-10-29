@@ -189,7 +189,7 @@ Response headers: `X-Wm-Report` (base64 report JSON), `X-Wm-Out-Name` (suggested
 | `.env.example` | template for port, bind address, limits and concurrency (copy to `.env`) |
 | `LICENSE` | MIT |
 | `tools/push-via-api.py` | push a commit through the GitHub Data API (see below) |
-| `.ref/` | end-to-end and edge-case tests, plus an OpenAI-compatible mock |
+| `tests/` | end-to-end and edge-case tests, plus an OpenAI-compatible mock |
 
 Nothing is written to the host at runtime: the container rootfs is read-only and temporary files
 live in `/tmp` (tmpfs), deleted together with the per-request directory.
@@ -200,7 +200,7 @@ live in `/tmp` (tmpfs), deleted together with the per-request directory.
 
 ## Development and tests
 
-The regression suites live in `.ref/`:
+The regression suites live in `tests/` and run against a live instance:
 
 | Script | Coverage |
 | --- | --- |
@@ -213,12 +213,14 @@ The regression suites live in `.ref/`:
 | `mock_openai.py` | fake OpenAI-compatible server used by the two `e2e_*.py` suites |
 
 ```sh
-cd .ref && python e2e.py && python e2e_llm.py && python test_split.py \
-  && python test_edges.py && python test_proto.py && python test_units.py
+python3 tests/mock_openai.py 8791 &          # e2e_llm.py talks to this
+export WM_BASE=http://127.0.0.1:8770
+for t in e2e test_split test_edges test_proto test_units e2e_llm; do python3 "tests/$t.py"; done
 ```
 
-116 assertions in total: 39 + 18 + 11 + 9 + 11 + 28. `e2e_llm.py` needs `mock_openai.py` running
-(`python mock_openai.py 8791`).
+116 assertions in total: 39 + 18 + 11 + 9 + 11 + 28. The same set runs in CI every week
+(`.github/workflows/engine-compat.yml`) against this project's newest upstream engine, so an engine-side
+change shows up as a red check instead of a user bug report.
 
 ### Security and robustness
 
