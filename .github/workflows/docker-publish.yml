@@ -40,7 +40,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ vars.DOCKERHUB_REPO || 'indexmobius/watermarks-remover-webui' }}
+          images: ${{ vars.DOCKERHUB_REPO || 'indexmobius/cleanmarks' }}
           tags: |
             type=semver,pattern={{version}}
             type=raw,value=latest

@@ -14,7 +14,6 @@ const LANG_KEY = 'wm.lang';
 
 const DICT = {
   /* ---------- 顶部 ---------- */
-  '水印清理工具': 'Watermarks Remover',
   'C2PA · EXIF/XMP · 隐形字符': 'C2PA · EXIF/XMP · invisible chars',
   '连接中…': 'Connecting…',
   'AI 接口': 'AI',

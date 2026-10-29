@@ -1,4 +1,4 @@
-# Watermarks Remover — Web UI
+# CleanMarks
 
 **English** · [简体中文](README.zh-CN.md)
 
@@ -14,11 +14,11 @@ documents, audio and video — locally, in Docker.
 
 *Bilingual UI — the `EN` button in the header switches language; screenshots show English.*
 
-[![Docker Hub](https://img.shields.io/badge/docker Hub-2560EB?logo=docker&logoColor=white)](https://hub.docker.com/r/indexmobius/watermarks-remover-webui)  
-[![Publish image](https://github.com/MobiusIndex/watermarks-remover-webui/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/MobiusIndex/watermarks-remover-webui/actions/workflows/docker-publish.yml)  
+[![Docker Hub](https://img.shields.io/badge/docker Hub-2560EB?logo=docker&logoColor=white)](https://hub.docker.com/r/indexmobius/cleanmarks)  
+[![Publish image](https://github.com/MobiusIndex/cleanmarks/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/MobiusIndex/cleanmarks/actions/workflows/docker-publish.yml)  
 
 ```sh
-git clone https://github.com/MobiusIndex/watermarks-remover-webui && cd watermarks-remover-webui
+git clone https://github.com/MobiusIndex/cleanmarks && cd cleanmarks
 docker compose up -d --build      # first run pulls the engine image (~1 GB)
 ```
 
@@ -27,7 +27,7 @@ Open <http://127.0.0.1:8770>. Docker 24+ / Compose v2, ~3 GB disk.
 Or skip the build entirely — the image is on Docker Hub (engine included, one container):
 
 ```sh
-docker run -d --name watermarks-remover-webui -p 127.0.0.1:8770:8770   --tmpfs /tmp:rw,size=512m indexmobius/watermarks-remover-webui:latest
+docker run -d --name cleanmarks -p 127.0.0.1:8770:8770   --tmpfs /tmp:rw,size=512m indexmobius/cleanmarks:latest
 ```
 
 Prefer one container? `docker compose -f compose.allinone.yaml up -d --build` — engine and UI in the

@@ -8,19 +8,19 @@
 # 只想一条命令跑起来」的场景；两容器模式仍建议用于长期运行（引擎崩了不影响界面）。
 #
 # 想用普通 docker 而不是 compose：
-#   docker build -t watermarks-remover-webui .
+#   docker build -t cleanmarks .
 #   docker run -d --name wr-web -p 127.0.0.1:8770:8770 \
 #     -e WATERMARKS_EMBEDDED=1 -e WATERMARKS_UPSTREAM=http://127.0.0.1:8765 \
-#     --read-only --tmpfs /tmp --init watermarks-remover-webui
+#     --read-only --tmpfs /tmp --init cleanmarks
 
-name: watermarks-remover-webui-standalone
+name: cleanmarks-standalone
 
 services:
   web:
     build:
       context: .
       dockerfile: Dockerfile
-    image: watermarks-remover-webui:standalone
+    image: cleanmarks:standalone
     ports:
       - "${WM_BIND:-127.0.0.1}:${WM_PORT:-8770}:8770"
     environment:

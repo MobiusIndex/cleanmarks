@@ -11,7 +11,7 @@
 # 说明：只固定 wr-core 的镜像 digest 会让它绑死在一个版本上，用 tag 更便于
 # 后续更新；web 镜像基于它构建，所以两者要一起更新。
 
-name: watermarks-remover-webui
+name: cleanmarks
 
 services:
   # 官方核心服务：文本 Layer A、图片/文档/音视频元数据与 C2PA 剥离。

@@ -1,6 +1,6 @@
 # Details
 
-Extended documentation for **[watermarks-remover-webui](../README.md)** · [简体中文](details.zh-CN.md)
+Extended documentation for **[CleanMarks](../README.md)** · [简体中文](details.zh-CN.md)
 
 Installation and day-to-day usage are in the [README](../README.md); this file is the reference.
 

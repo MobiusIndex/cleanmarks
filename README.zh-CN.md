@@ -1,4 +1,4 @@
-# 水印清理工具 — WebUI
+# CleanMarks —— 水印清理 Web 界面
 
 [English](README.md) · **简体中文**
 
@@ -14,11 +14,11 @@
 
 *界面中英双语（右上角语言按钮切换），截图是英文界面。*
 
-[![Docker Hub](https://img.shields.io/badge/docker Hub-2560EB?logo=docker&logoColor=white)](https://hub.docker.com/r/indexmobius/watermarks-remover-webui)  
-[![Publish image](https://github.com/MobiusIndex/watermarks-remover-webui/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/MobiusIndex/watermarks-remover-webui/actions/workflows/docker-publish.yml)  
+[![Docker Hub](https://img.shields.io/badge/docker Hub-2560EB?logo=docker&logoColor=white)](https://hub.docker.com/r/indexmobius/cleanmarks)  
+[![Publish image](https://github.com/MobiusIndex/cleanmarks/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/MobiusIndex/cleanmarks/actions/workflows/docker-publish.yml)  
 
 ```sh
-git clone https://github.com/MobiusIndex/watermarks-remover-webui && cd watermarks-remover-webui
+git clone https://github.com/MobiusIndex/cleanmarks && cd cleanmarks
 docker compose up -d --build      # 首次会拉取引擎镜像（约 1 GB）
 ```
 
@@ -27,7 +27,7 @@ docker compose up -d --build      # 首次会拉取引擎镜像（约 1 GB）
 不想本地构建？镜像已经放到 Docker Hub（自带引擎，一个容器搞定）：
 
 ```sh
-docker run -d --name watermarks-remover-webui -p 127.0.0.1:8770:8770   --tmpfs /tmp:rw,size=512m indexmobius/watermarks-remover-webui:latest
+docker run -d --name cleanmarks -p 127.0.0.1:8770:8770   --tmpfs /tmp:rw,size=512m indexmobius/cleanmarks:latest
 ```
 
 只想跑一个容器：`docker compose -f compose.allinone.yaml up -d --build`（引擎与界面同容器）。

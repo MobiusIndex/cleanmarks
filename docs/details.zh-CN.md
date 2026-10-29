@@ -1,6 +1,6 @@
 # 细节文档
 
-**[watermarks-remover-webui](../README.zh-CN.md)** 的扩展文档 · [English](details.md)
+**[CleanMarks](../README.zh-CN.md)** 的扩展文档 · [English](details.md)
 
 安装和日常使用看 [README](../README.zh-CN.md)；这里是可以查阅的细节。
 
@@ -356,7 +356,7 @@ docker compose up -d --no-build
 
 ## 维护者备注：发布到 GitHub
 
-仓库：<https://github.com/MobiusIndex/watermarks-remover-webui>
+仓库：<https://github.com/MobiusIndex/cleanmarks>
 
 `git push` 走 HTTP 代理会卡死（CONNECT 要 20–30 秒，之后 POST 阶段无限等待），
 而 `api.github.com` 走同一个代理是通的。所以更新用仓库里的脚本，它通过 Git Data API
